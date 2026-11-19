@@ -20,6 +20,9 @@ workflows:
           APP=$(ls -d /tmp/ipa/Payload/*.app)
           /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Info.plist"
           otool -l "$APP/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Info.plist")" | grep -A4 LC_ENCRYPTION_INFO | grep cryptid
+          echo "TizenTube strings (must be 0 for a clean IPA):"
+          grep -c -a -i tizentube "$APP/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Info.plist")" || true
+          ls "$APP/Frameworks" 2>/dev/null
       - name: Build
         script: make
     artifacts:
