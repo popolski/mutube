@@ -14,6 +14,12 @@ workflows:
         script: |
           mkdir -p ipa
           curl -fL "$YOUTUBE_IPA_URL" -o ipa/YouTube_4.54.01_decrypted.ipa
+      - name: Check IPA (version must be 4.54.01, cryptid must be 0)
+        script: |
+          rm -rf /tmp/ipa && unzip -q ipa/YouTube_4.54.01_decrypted.ipa -d /tmp/ipa
+          APP=$(ls -d /tmp/ipa/Payload/*.app)
+          /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Info.plist"
+          otool -l "$APP/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Info.plist")" | grep -A4 LC_ENCRYPTION_INFO | grep cryptid
       - name: Build
         script: make
     artifacts:
