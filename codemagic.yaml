@@ -1,0 +1,33 @@
+workflows:
+  mutube-legacy:
+    name: MuTube IPA (legacy 4.50.03, Frida)
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    environment:
+      xcode: latest
+      groups:
+        - mutube # YOUTUBE_IPA_URL must point to YouTube_4.50.03_decrypted.ipa
+    scripts:
+      - name: Install tools
+        script: |
+          brew install wget xz
+          git clone --depth 1 https://github.com/Tyilo/insert_dylib /tmp/insert_dylib
+          (cd /tmp/insert_dylib && xcodebuild -quiet)
+          sudo cp /tmp/insert_dylib/build/Release/insert_dylib /usr/local/bin/insert_dylib
+          mkdir -p bin
+          wget -q https://github.com/frida/frida/releases/download/16.7.19/gum-graft-16.7.19-macos-arm64.xz -O bin/gum-graft-16.7.19-macos-arm64.xz
+          xz -d bin/gum-graft-16.7.19-macos-arm64.xz
+          chmod +x bin/gum-graft-16.7.19-macos-arm64
+      - name: Fetch and check IPA
+        script: |
+          mkdir -p ipa
+          curl -fL "$YOUTUBE_IPA_URL" -o ipa/YouTube_4.50.03_decrypted.ipa
+          rm -rf /tmp/ipa && unzip -q ipa/YouTube_4.50.03_decrypted.ipa -d /tmp/ipa
+          ls /tmp/ipa/Payload
+          VER=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" /tmp/ipa/Payload/*.app/Info.plist)
+          echo "$VER"
+          [ "$VER" = "4.50.03" ] || { echo "Wrong YouTube version: $VER (need 4.50.03)"; exit 1; }
+      - name: Build
+        script: make
+    artifacts:
+      - mutube.ipa
