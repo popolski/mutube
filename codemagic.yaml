@@ -1,0 +1,20 @@
+workflows:
+  mutube:
+    name: MuTube IPA
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    environment:
+      xcode: latest
+      groups:
+        - mutube # must define YOUTUBE_IPA_URL (private direct link to YouTube_4.54.01_decrypted.ipa)
+    scripts:
+      - name: Install uv
+        script: brew install uv
+      - name: Fetch decrypted YouTube IPA
+        script: |
+          mkdir -p ipa
+          curl -fL "$YOUTUBE_IPA_URL" -o ipa/YouTube_4.54.01_decrypted.ipa
+      - name: Build
+        script: make
+    artifacts:
+      - mutube.ipa
