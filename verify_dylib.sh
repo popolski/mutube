@@ -25,7 +25,7 @@ otool -L "$DY" | tail -n +2
 echo "== Imports outside the Swift runtime / libSystem / Foundation basics:"
 nm -um "$DY" | grep -v -E "from libSystem|from libswiftCore|from libobjc|from libc\+\+|from CoreFoundation|from Foundation|from libswift_" || echo "(none)"
 echo "== Network or dynamic-loading symbols:"
-nm -um "$DY" | grep -i -E "socket|connect|CFNetwork|NSURL|dlopen|dlsym|getaddrinfo|posix_spawn|system\b" || echo "(none)"
+nm -um "$DY" | grep -i -E "socket|connect|CFNetwork|NSURL|dlopen|dlsym|getaddrinfo|posix_spawn|_system$" || echo "(none)"
 echo "== URLs / hosts in strings:"
 strings -a "$DY" | grep -E -i "https?://|\.(com|net|org|io|ru|cn)\b" || echo "(none)"
 
