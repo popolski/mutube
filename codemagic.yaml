@@ -31,3 +31,26 @@ workflows:
         script: make
     artifacts:
       - mutube.ipa
+  inspect-prebuilt:
+    name: Inspect prebuilt MuTube IPA
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    environment:
+      xcode: latest
+      groups:
+        - mutube # YOUTUBE_IPA_URL = the prebuilt MuTube IPA to inspect
+    scripts:
+      - name: Install uv
+        script: brew install uv
+      - name: Fetch prebuilt IPA
+        script: curl -fL "$YOUTUBE_IPA_URL" -o /tmp/prebuilt.ipa && shasum -a 256 /tmp/prebuilt.ipa
+      - name: Compare against every MuTube 4.54.01 patcher version
+        script: |
+          git fetch --unshallow -q || true
+          for c in $(git rev-list 8a8b260^..HEAD -- patcher.py inject.js); do
+            echo "=== MuTube commit $c: $(git log -1 --format=%s $c)"
+            d=/tmp/v/$c && mkdir -p $d
+            git show $c:patcher.py > $d/patcher.py && git show $c:inject.js > $d/inject.js
+            cp verify_prebuilt.py $d/
+            (cd $d && uv run -q verify_prebuilt.py /tmp/prebuilt.ipa) || true
+          done
