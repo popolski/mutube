@@ -54,3 +54,5 @@ workflows:
             cp verify_prebuilt.py $d/
             (cd $d && uv run -q verify_prebuilt.py /tmp/prebuilt.ipa) || true
           done
+      - name: Check embedded libswift_Concurrency.dylib
+        script: bash verify_dylib.sh /tmp/prebuilt.ipa
